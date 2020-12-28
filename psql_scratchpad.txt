@@ -1,0 +1,42 @@
+sample geometry submit
+
+UPDATE geometries SET geom = ST_GeomFromGeoJSON('{"type":"Polygon","coordinates":[[[-0.077929,51.508403],[-0.077929,51.531519],[-0.036218,51.531519],[-0.036218,51.508403],[-0.077929,51.508403]]]}'), geometry_id = 121  WHERE user_id = '9' returning *;
+
+
+------- UPSERT STATEMENT -------- (UPDATE GEOMETRIES IN GEOMETRY TABLE)
+
+WITH new_values (geometry_id, user_id, geom) as (
+   values
+   (121, 9, ST_GeomFromGeoJSON('{"type":"Polygon","coordinates":[[[-0.077929,51.508403],[-0.077929,51.531519],[-0.036218,51.531519],[-0.036218,51.508403],[-0.077929,51.508403]]]}')),
+   (122, 9, ST_GeomFromGeoJSON('{"type":"Polygon","coordinates":[[[-0.077929,51.508403],[-0.077929,51.531519],[-0.036218,51.531519],[-0.036218,51.508403],[-0.077929,51.508403]]]}')),
+   (123, 9, ST_GeomFromGeoJSON('{"type":"Polygon","coordinates":[[[-0.077929,51.508403],[-0.077929,51.531519],[-0.036218,51.531519],[-0.036218,51.508403],[-0.077929,51.508403]]]}'))
+),
+UPSERT as
+(
+     UPDATE geometries g
+     SET geom = new_values.geom,
+     user_id = new_values.user_id
+     FROM new_values
+     WHERE g.geometry_id = new_values.geometry_id
+     RETURNING g.* 
+)
+INSERT INTO geometries (geometry_id, user_id, geom)
+SELECT geometry_id, user_id, geom
+FROM new_values
+WHERE NOT EXISTS (SELECT 1
+   FROM upsert 
+   WHERE upsert.geometry_id = new_values.geometry_id)
+;
+
+----- ALTERNATIVE -----
+
+DELETE FROM geometries WHERE user_id = 9;
+
+INSERT INTO geometries (geometry_id, user_id, geom)
+VALUES  (121, 9, ST_GeomFromGeoJSON('{"type":"Polygon","coordinates":[[[-0.077929,51.508403],[-0.077929,51.531519],[-0.036218,51.531519],[-0.036218,51.508403],[-0.077929,51.508403]]]}')),
+   (122, 9, ST_GeomFromGeoJSON('{"type":"Polygon","coordinates":[[[-0.077929,51.508403],[-0.077929,51.531519],[-0.036218,51.531519],[-0.036218,51.508403],[-0.077929,51.508403]]]}')),
+   (123, 9, ST_GeomFromGeoJSON('{"type":"Polygon","coordinates":[[[-0.077929,51.508403],[-0.077929,51.531519],[-0.036218,51.531519],[-0.036218,51.508403],[-0.077929,51.508403]]]}'));
+
+   INSERT INTO geometries (geometry_id, user_id, geom) VALUES
+
+(139, 87, ST_GeomFromGeoJSON('{"type":"Polygon","coordinates":[[[-0.021831,51.560858],[-0.021831,51.587827],[0.01535,51.587827],[0.01535,51.560858],[-0.021831,51.560858]]]}')),(161, 87, ST_GeomFromGeoJSON('{"type":"Polygon","coordinates":[[[0.037065,51.579486],[0.037065,51.613325],[0.087681,51.613325],[0.087681,51.579486],[0.037065,51.579486]]]}')),(167, 87, ST_GeomFromGeoJSON('{"type":"Polygon","coordinates":[[[-0.029798,51.595681],[-0.029798,51.61507],[0.030347,51.61507],[0.030347,51.595681],[-0.029798,51.595681]]]}'));

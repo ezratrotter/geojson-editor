@@ -74,7 +74,9 @@ export default function LoginDialogue({ open, handleClose }) {
   }, [handleClose]);
 
   React.useEffect(() => {
+    console.log("LOGIN DETECTED");
     if (loggedIn === true) {
+      console.log("LOGIN PASSED IF STATEMENT USEFFECT");
       stateResetandClose();
     }
   }, [loggedIn, stateResetandClose]);

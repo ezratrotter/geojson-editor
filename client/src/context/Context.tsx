@@ -1,7 +1,5 @@
 import * as React from "react";
-// import RestaurantFinder, { Restaurant, Review } from "../apis/RestaurantFinder";
 import axios from "axios";
-import { GeometryUtil } from "leaflet";
 
 //leaflet import #TODO work out why this is so ghetto
 // potentially not needed
@@ -15,6 +13,11 @@ interface User {
   user_id: number;
   username: string;
 }
+
+// interface GeomObject {
+//   geom_id: number;
+//   geometry: string;
+// }
 
 type Context = {
   loggedIn: boolean;
@@ -44,14 +47,21 @@ export const UserProvider: React.FC<AppProviderProps> = ({ children }) => {
     console.log(geometries);
   }, [geometries]);
 
+  React.useEffect(() => {
+    console.log("login detected");
+
+    if (user.user_id === null) {
+      console.log("logout detected");
+    }
+  }, [user]);
+
   const addGeometry = (e: any) => {
     const { layer } = e;
     const { _leaflet_id } = layer;
     const fullGeojson = layer.toGeoJSON();
     const layerGeojson = fullGeojson.geometry;
-    // const id = Date.now();
     const entry = {
-      id: _leaflet_id,
+      geometry_id: _leaflet_id,
       geometry: JSON.stringify(layerGeojson),
     };
     setGeometries([...geometries, entry]);
@@ -59,7 +69,7 @@ export const UserProvider: React.FC<AppProviderProps> = ({ children }) => {
 
   const editGeometry = (e) => {
     const _layers = e.layers._layers;
-    const id = Number(Object.keys(_layers)[0]);
+    const geometry_id = Number(Object.keys(_layers)[0]);
     const layer = Object.values(_layers)[0];
     // @ts-ignore:
     const fullGeojson = layer.toGeoJSON();
@@ -67,14 +77,14 @@ export const UserProvider: React.FC<AppProviderProps> = ({ children }) => {
     const geometry = JSON.stringify(layerGeojson);
 
     const entry = {
-      id,
+      geometry_id,
       geometry,
     };
 
     setGeometries((prevState) =>
       prevState.map((geometry) => {
         debugger;
-        if (geometry.id === entry.id) {
+        if (geometry.geometry_id === entry.geometry_id) {
           return { ...geometry, geometry: entry.geometry };
         }
         return geometry;
@@ -83,35 +93,37 @@ export const UserProvider: React.FC<AppProviderProps> = ({ children }) => {
   };
   const deleteGeometry = (e) => {
     const _layers = e.layers._layers;
-    const id = Number(Object.keys(_layers)[0]);
+    const geometry_id = Number(Object.keys(_layers)[0]);
     const layer = Object.values(_layers)[0];
     // @ts-ignore:
     const fullGeojson = layer.toGeoJSON();
     const layerGeojson = fullGeojson.geometry;
     const geometry = JSON.stringify(layerGeojson);
-
     const entry = {
-      id,
+      geometry_id,
       geometry,
     };
-
-    debugger;
-    // setGeometries((prevState) =>
-    //   prevState.filter((geometry) => geometry.id !== entry.id)
-    // );
+    setGeometries((prevState) =>
+      prevState.filter((geometry) => geometry.geometry_id !== entry.geometry_id)
+    );
   };
 
   const authenticatePwd = (clientPwd: string, serverPwd: string): boolean => {
     console.log("---password check---", clientPwd, serverPwd);
-    if (clientPwd === serverPwd) return true;
-    else return false;
+    if (clientPwd === serverPwd) {
+      console.log("password check passed");
+      return true;
+    } else {
+      console.log("password check FAILED");
+      return false;
+    }
   };
 
   const submitGeometries = async (e: any) => {
     console.log("submit geometries attempted");
     e.preventDefault();
     try {
-      const response = await instance.put(`/geometries/${user}`, {
+      const response = await instance.put(`/geometries/${user.user_id}`, {
         geometries,
       });
       console.log(response);
@@ -148,7 +160,8 @@ export const UserProvider: React.FC<AppProviderProps> = ({ children }) => {
     uiUsername: string,
     uiPassword: string
   ): Promise<any> => {
-    console.log("create use attempted");
+    console.log("create user attempted");
+    console.log(uiUsername, uiPassword);
     try {
       const response = await instance.post("/createUser", {
         uiUsername,
@@ -156,7 +169,7 @@ export const UserProvider: React.FC<AppProviderProps> = ({ children }) => {
       });
       const { username, user_id } = response.data.results;
       setUser({
-        user_id,
+        user_id: parseInt(user_id),
         username,
       });
       setLoggedIn(true);
