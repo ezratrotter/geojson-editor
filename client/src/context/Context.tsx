@@ -43,16 +43,20 @@ export const UserProvider: React.FC<AppProviderProps> = ({ children }) => {
   const [geometries, setGeometries] = React.useState([]);
 
   React.useEffect(() => {
-    console.log("rerender");
-    console.log(geometries);
-  }, [geometries]);
+    const fetchGeometries = async () => {
+      if (user.user_id !== null) {
+        try {
+          console.log("FETCHING GEOMETRIES");
+          const response = await instance.get(`geometries/${user.user_id}/`);
+          const { results } = response.data;
+          setGeometries(results);
+        } catch (err) {
+          console.log(err);
+        }
+      }
+    };
 
-  React.useEffect(() => {
-    console.log("login detected");
-
-    if (user.user_id === null) {
-      console.log("logout detected");
-    }
+    fetchGeometries();
   }, [user]);
 
   const addGeometry = (e: any) => {
@@ -91,6 +95,7 @@ export const UserProvider: React.FC<AppProviderProps> = ({ children }) => {
       })
     );
   };
+
   const deleteGeometry = (e) => {
     const _layers = e.layers._layers;
     const geometry_id = Number(Object.keys(_layers)[0]);
@@ -109,7 +114,6 @@ export const UserProvider: React.FC<AppProviderProps> = ({ children }) => {
   };
 
   const authenticatePwd = (clientPwd: string, serverPwd: string): boolean => {
-    console.log("---password check---", clientPwd, serverPwd);
     if (clientPwd === serverPwd) {
       console.log("password check passed");
       return true;

@@ -1,7 +1,5 @@
 import React from "react";
 import ReactDOM from "react-dom";
-import "./index.css";
-import Map from "./components/Map";
 import ReactMap from "./components/ReactMap";
 import Navbar from "./components/Navbar";
 import Container from "@material-ui/core/Container";

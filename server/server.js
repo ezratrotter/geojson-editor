@@ -48,6 +48,21 @@ app.get("/api/v1/user/:username", async (req, res) => {
   }
 });
 
+app.get("/api/v1/geometries/:user_id", async (req, res) => {
+  try {
+    const results = await db.query(
+      "SELECT geometry_id::INTEGER, ST_AsGeoJSON(geom) as geom FROM geometries WHERE user_id = $1",
+      [req.params.user_id]
+    );
+    res.status(200).json({
+      status: "success",
+      results: results.rows,
+    });
+  } catch (err) {
+    console.log(err);
+  }
+});
+
 app.post("/api/v1/createUser", async (req, res) => {
   const { uiUsername: username, uiPassword: password } = req.body;
   console.log(username, password);

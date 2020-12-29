@@ -23,7 +23,7 @@ const useStyles = makeStyles((theme) => ({
 function Navbar() {
   const classes = useStyles();
   const [open, setOpen] = React.useState(false);
-  const { user, loggedIn, logOut, submitGeometries } = useGlobalContext();
+  const { loggedIn, logOut, submitGeometries } = useGlobalContext();
 
   const handleClickOpen = () => {
     setOpen(true);
